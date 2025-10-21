@@ -1,4 +1,5 @@
 import { create_service as create_user } from "../../services/user/create.service.js";
+import { create_credential_service } from "../../services/user/credential.service.js";
 import { hash_password } from "../../lib/hashing/hash_password.js";
 import { VerificationError, get_response_error_data } from "../../lib/errors/get_response_error_data.js";
 
@@ -35,6 +36,13 @@ export async function register_auditor_controller(req, res) {
 
         // Create auditor user
         const created_auditor = await create_user(user);
+
+        // Create credential for the auditor user
+        const credential = await create_credential_service(created_auditor.id, user.password);
+        
+        if (!credential) {
+            throw new VerificationError(400, "Failed to create auditor credentials.");
+        }
 
         // Remove sensitive data from response
         delete created_auditor.credential;
